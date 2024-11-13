@@ -42,7 +42,8 @@ const app = initializeApp(firebaseConfig);
   })
     .then((currentToken) => {
       if (currentToken) {
-debugger
+      debugger
+      wigzo
         // Send the token to your server and update the UI if necessary
         
       } else {

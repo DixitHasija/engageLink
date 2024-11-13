@@ -1,5 +1,5 @@
 
-import { setupFirebase } from './firebase.service';
+import { setupFirebase } from './services/firebase.service';
 
 // import { setupFirebase } from "./old_firebase.service";
 // Call the function to initialize Firebase
