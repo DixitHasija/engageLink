@@ -4543,6 +4543,7 @@
     }).then((currentToken) => {
       if (currentToken) {
         debugger;
+        wigzo;
       } else {
         debugger;
         console.log(
