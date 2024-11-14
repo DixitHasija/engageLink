@@ -7,6 +7,8 @@ import { setupFirebase } from './services/firebase.service';
 // index.js
 const loadServiceWorkerAndSetupFirebase = () => {
     debugger
+
+    
     if ('serviceWorker' in navigator) {
 //   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/firebase-messaging-sw.js')
