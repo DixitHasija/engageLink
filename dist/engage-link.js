@@ -274,6 +274,144 @@
   const base64urlEncodeWithoutPadding = function(str) {
     return base64Encode(str).replace(/\./g, "");
   };
+  const base64Decode = function(str) {
+    try {
+      return base64.decodeString(str, true);
+    } catch (e) {
+      console.error("base64Decode failed: ", e);
+    }
+    return null;
+  };
+  /**
+   * @license
+   * Copyright 2022 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
+  function getGlobal() {
+    if (typeof self !== "undefined") {
+      return self;
+    }
+    if (typeof window !== "undefined") {
+      return window;
+    }
+    if (typeof global !== "undefined") {
+      return global;
+    }
+    throw new Error("Unable to locate global object.");
+  }
+  /**
+   * @license
+   * Copyright 2022 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
+  const getDefaultsFromGlobal = () => getGlobal().__FIREBASE_DEFAULTS__;
+  const getDefaultsFromEnvVariable = () => {
+    if (typeof process === "undefined" || typeof process.env === "undefined") {
+      return;
+    }
+    const defaultsJsonString = process.env.__FIREBASE_DEFAULTS__;
+    if (defaultsJsonString) {
+      return JSON.parse(defaultsJsonString);
+    }
+  };
+  const getDefaultsFromCookie = () => {
+    if (typeof document === "undefined") {
+      return;
+    }
+    let match;
+    try {
+      match = document.cookie.match(/__FIREBASE_DEFAULTS__=([^;]+)/);
+    } catch (e) {
+      return;
+    }
+    const decoded = match && base64Decode(match[1]);
+    return decoded && JSON.parse(decoded);
+  };
+  const getDefaults = () => {
+    try {
+      return getDefaultsFromGlobal() || getDefaultsFromEnvVariable() || getDefaultsFromCookie();
+    } catch (e) {
+      console.info(`Unable to get __FIREBASE_DEFAULTS__ due to: ${e}`);
+      return;
+    }
+  };
+  const getDefaultAppConfig = () => {
+    var _a;
+    return (_a = getDefaults()) === null || _a === void 0 ? void 0 : _a.config;
+  };
+  /**
+   * @license
+   * Copyright 2017 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
+  class Deferred {
+    constructor() {
+      this.reject = () => {
+      };
+      this.resolve = () => {
+      };
+      this.promise = new Promise((resolve, reject) => {
+        this.resolve = resolve;
+        this.reject = reject;
+      });
+    }
+    /**
+     * Our API internals are not promisified and cannot because our callback APIs have subtle expectations around
+     * invoking promises inline, which Promises are forbidden to do. This method accepts an optional node-style callback
+     * and returns a node-style callback which will resolve or reject the Deferred's promise.
+     */
+    wrapCallback(callback) {
+      return (error, value) => {
+        if (error) {
+          this.reject(error);
+        } else {
+          this.resolve(value);
+        }
+        if (typeof callback === "function") {
+          this.promise.catch(() => {
+          });
+          if (callback.length === 1) {
+            callback(error);
+          } else {
+            callback(error, value);
+          }
+        }
+      };
+    }
+  }
   function isBrowserExtension() {
     const runtime = typeof chrome === "object" ? chrome.runtime : typeof browser === "object" ? browser.runtime : void 0;
     return typeof runtime === "object" && runtime.id !== void 0;
@@ -368,6 +506,36 @@
     });
   }
   const PATTERN = /\{\$([^}]+)}/g;
+  function deepEqual(a, b) {
+    if (a === b) {
+      return true;
+    }
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    for (const k of aKeys) {
+      if (!bKeys.includes(k)) {
+        return false;
+      }
+      const aProp = a[k];
+      const bProp = b[k];
+      if (isObject(aProp) && isObject(bProp)) {
+        if (!deepEqual(aProp, bProp)) {
+          return false;
+        }
+      } else if (aProp !== bProp) {
+        return false;
+      }
+    }
+    for (const k of bKeys) {
+      if (!aKeys.includes(k)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  function isObject(thing) {
+    return thing !== null && typeof thing === "object";
+  }
   /**
    * @license
    * Copyright 2019 Google LLC
@@ -453,6 +621,308 @@
     setInstanceCreatedCallback(callback) {
       this.onInstanceCreated = callback;
       return this;
+    }
+  }
+  /**
+   * @license
+   * Copyright 2019 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
+  const DEFAULT_ENTRY_NAME$1 = "[DEFAULT]";
+  /**
+   * @license
+   * Copyright 2019 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
+  class Provider {
+    constructor(name2, container) {
+      this.name = name2;
+      this.container = container;
+      this.component = null;
+      this.instances = /* @__PURE__ */ new Map();
+      this.instancesDeferred = /* @__PURE__ */ new Map();
+      this.instancesOptions = /* @__PURE__ */ new Map();
+      this.onInitCallbacks = /* @__PURE__ */ new Map();
+    }
+    /**
+     * @param identifier A provider can provide multiple instances of a service
+     * if this.component.multipleInstances is true.
+     */
+    get(identifier) {
+      const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
+      if (!this.instancesDeferred.has(normalizedIdentifier)) {
+        const deferred = new Deferred();
+        this.instancesDeferred.set(normalizedIdentifier, deferred);
+        if (this.isInitialized(normalizedIdentifier) || this.shouldAutoInitialize()) {
+          try {
+            const instance = this.getOrInitializeService({
+              instanceIdentifier: normalizedIdentifier
+            });
+            if (instance) {
+              deferred.resolve(instance);
+            }
+          } catch (e) {
+          }
+        }
+      }
+      return this.instancesDeferred.get(normalizedIdentifier).promise;
+    }
+    getImmediate(options) {
+      var _a;
+      const normalizedIdentifier = this.normalizeInstanceIdentifier(options === null || options === void 0 ? void 0 : options.identifier);
+      const optional = (_a = options === null || options === void 0 ? void 0 : options.optional) !== null && _a !== void 0 ? _a : false;
+      if (this.isInitialized(normalizedIdentifier) || this.shouldAutoInitialize()) {
+        try {
+          return this.getOrInitializeService({
+            instanceIdentifier: normalizedIdentifier
+          });
+        } catch (e) {
+          if (optional) {
+            return null;
+          } else {
+            throw e;
+          }
+        }
+      } else {
+        if (optional) {
+          return null;
+        } else {
+          throw Error(`Service ${this.name} is not available`);
+        }
+      }
+    }
+    getComponent() {
+      return this.component;
+    }
+    setComponent(component) {
+      if (component.name !== this.name) {
+        throw Error(`Mismatching Component ${component.name} for Provider ${this.name}.`);
+      }
+      if (this.component) {
+        throw Error(`Component for ${this.name} has already been provided`);
+      }
+      this.component = component;
+      if (!this.shouldAutoInitialize()) {
+        return;
+      }
+      if (isComponentEager(component)) {
+        try {
+          this.getOrInitializeService({ instanceIdentifier: DEFAULT_ENTRY_NAME$1 });
+        } catch (e) {
+        }
+      }
+      for (const [instanceIdentifier, instanceDeferred] of this.instancesDeferred.entries()) {
+        const normalizedIdentifier = this.normalizeInstanceIdentifier(instanceIdentifier);
+        try {
+          const instance = this.getOrInitializeService({
+            instanceIdentifier: normalizedIdentifier
+          });
+          instanceDeferred.resolve(instance);
+        } catch (e) {
+        }
+      }
+    }
+    clearInstance(identifier = DEFAULT_ENTRY_NAME$1) {
+      this.instancesDeferred.delete(identifier);
+      this.instancesOptions.delete(identifier);
+      this.instances.delete(identifier);
+    }
+    // app.delete() will call this method on every provider to delete the services
+    // TODO: should we mark the provider as deleted?
+    async delete() {
+      const services = Array.from(this.instances.values());
+      await Promise.all([
+        ...services.filter((service) => "INTERNAL" in service).map((service) => service.INTERNAL.delete()),
+        ...services.filter((service) => "_delete" in service).map((service) => service._delete())
+      ]);
+    }
+    isComponentSet() {
+      return this.component != null;
+    }
+    isInitialized(identifier = DEFAULT_ENTRY_NAME$1) {
+      return this.instances.has(identifier);
+    }
+    getOptions(identifier = DEFAULT_ENTRY_NAME$1) {
+      return this.instancesOptions.get(identifier) || {};
+    }
+    initialize(opts = {}) {
+      const { options = {} } = opts;
+      const normalizedIdentifier = this.normalizeInstanceIdentifier(opts.instanceIdentifier);
+      if (this.isInitialized(normalizedIdentifier)) {
+        throw Error(`${this.name}(${normalizedIdentifier}) has already been initialized`);
+      }
+      if (!this.isComponentSet()) {
+        throw Error(`Component ${this.name} has not been registered yet`);
+      }
+      const instance = this.getOrInitializeService({
+        instanceIdentifier: normalizedIdentifier,
+        options
+      });
+      for (const [instanceIdentifier, instanceDeferred] of this.instancesDeferred.entries()) {
+        const normalizedDeferredIdentifier = this.normalizeInstanceIdentifier(instanceIdentifier);
+        if (normalizedIdentifier === normalizedDeferredIdentifier) {
+          instanceDeferred.resolve(instance);
+        }
+      }
+      return instance;
+    }
+    /**
+     *
+     * @param callback - a function that will be invoked  after the provider has been initialized by calling provider.initialize().
+     * The function is invoked SYNCHRONOUSLY, so it should not execute any longrunning tasks in order to not block the program.
+     *
+     * @param identifier An optional instance identifier
+     * @returns a function to unregister the callback
+     */
+    onInit(callback, identifier) {
+      var _a;
+      const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
+      const existingCallbacks = (_a = this.onInitCallbacks.get(normalizedIdentifier)) !== null && _a !== void 0 ? _a : /* @__PURE__ */ new Set();
+      existingCallbacks.add(callback);
+      this.onInitCallbacks.set(normalizedIdentifier, existingCallbacks);
+      const existingInstance = this.instances.get(normalizedIdentifier);
+      if (existingInstance) {
+        callback(existingInstance, normalizedIdentifier);
+      }
+      return () => {
+        existingCallbacks.delete(callback);
+      };
+    }
+    /**
+     * Invoke onInit callbacks synchronously
+     * @param instance the service instance`
+     */
+    invokeOnInitCallbacks(instance, identifier) {
+      const callbacks = this.onInitCallbacks.get(identifier);
+      if (!callbacks) {
+        return;
+      }
+      for (const callback of callbacks) {
+        try {
+          callback(instance, identifier);
+        } catch (_a) {
+        }
+      }
+    }
+    getOrInitializeService({ instanceIdentifier, options = {} }) {
+      let instance = this.instances.get(instanceIdentifier);
+      if (!instance && this.component) {
+        instance = this.component.instanceFactory(this.container, {
+          instanceIdentifier: normalizeIdentifierForFactory(instanceIdentifier),
+          options
+        });
+        this.instances.set(instanceIdentifier, instance);
+        this.instancesOptions.set(instanceIdentifier, options);
+        this.invokeOnInitCallbacks(instance, instanceIdentifier);
+        if (this.component.onInstanceCreated) {
+          try {
+            this.component.onInstanceCreated(this.container, instanceIdentifier, instance);
+          } catch (_a) {
+          }
+        }
+      }
+      return instance || null;
+    }
+    normalizeInstanceIdentifier(identifier = DEFAULT_ENTRY_NAME$1) {
+      if (this.component) {
+        return this.component.multipleInstances ? identifier : DEFAULT_ENTRY_NAME$1;
+      } else {
+        return identifier;
+      }
+    }
+    shouldAutoInitialize() {
+      return !!this.component && this.component.instantiationMode !== "EXPLICIT";
+    }
+  }
+  function normalizeIdentifierForFactory(identifier) {
+    return identifier === DEFAULT_ENTRY_NAME$1 ? void 0 : identifier;
+  }
+  function isComponentEager(component) {
+    return component.instantiationMode === "EAGER";
+  }
+  /**
+   * @license
+   * Copyright 2019 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
+  class ComponentContainer {
+    constructor(name2) {
+      this.name = name2;
+      this.providers = /* @__PURE__ */ new Map();
+    }
+    /**
+     *
+     * @param component Component being added
+     * @param overwrite When a component with the same name has already been registered,
+     * if overwrite is true: overwrite the existing component with the new component and create a new
+     * provider with the new component. It can be useful in tests where you want to use different mocks
+     * for different tests.
+     * if overwrite is false: throw an exception
+     */
+    addComponent(component) {
+      const provider = this.getProvider(component.name);
+      if (provider.isComponentSet()) {
+        throw new Error(`Component ${component.name} has already been registered with ${this.name}`);
+      }
+      provider.setComponent(component);
+    }
+    addOrOverwriteComponent(component) {
+      const provider = this.getProvider(component.name);
+      if (provider.isComponentSet()) {
+        this.providers.delete(component.name);
+      }
+      this.addComponent(component);
+    }
+    /**
+     * getProvider provides a type safe interface where it can only be called with a field name
+     * present in NameServiceMapping interface.
+     *
+     * Firebase SDKs providing services should extend NameServiceMapping interface to register
+     * themselves.
+     */
+    getProvider(name2) {
+      if (this.providers.has(name2)) {
+        return this.providers.get(name2);
+      }
+      const provider = new Provider(name2, this);
+      this.providers.set(name2, provider);
+      return provider;
+    }
+    getProviders() {
+      return Array.from(this.providers.values());
     }
   }
   /**
@@ -870,6 +1340,23 @@
   const name$2$1 = "@firebase/vertexai";
   const name$1$1 = "@firebase/firestore-compat";
   const name$r = "firebase";
+  /**
+   * @license
+   * Copyright 2019 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
+  const DEFAULT_ENTRY_NAME = "[DEFAULT]";
   const PLATFORM_LOG_STRING = {
     [name$q]: "fire-core",
     [name$p]: "fire-core-compat",
@@ -1023,6 +1510,122 @@
     ]: "FirebaseServerApp is not for use in browser environments."
   };
   const ERROR_FACTORY$3 = new ErrorFactory("app", "Firebase", ERRORS$1);
+  /**
+   * @license
+   * Copyright 2019 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
+  class FirebaseAppImpl {
+    constructor(options, config, container) {
+      this._isDeleted = false;
+      this._options = Object.assign({}, options);
+      this._config = Object.assign({}, config);
+      this._name = config.name;
+      this._automaticDataCollectionEnabled = config.automaticDataCollectionEnabled;
+      this._container = container;
+      this.container.addComponent(new Component(
+        "app",
+        () => this,
+        "PUBLIC"
+        /* ComponentType.PUBLIC */
+      ));
+    }
+    get automaticDataCollectionEnabled() {
+      this.checkDestroyed();
+      return this._automaticDataCollectionEnabled;
+    }
+    set automaticDataCollectionEnabled(val) {
+      this.checkDestroyed();
+      this._automaticDataCollectionEnabled = val;
+    }
+    get name() {
+      this.checkDestroyed();
+      return this._name;
+    }
+    get options() {
+      this.checkDestroyed();
+      return this._options;
+    }
+    get config() {
+      this.checkDestroyed();
+      return this._config;
+    }
+    get container() {
+      return this._container;
+    }
+    get isDeleted() {
+      return this._isDeleted;
+    }
+    set isDeleted(val) {
+      this._isDeleted = val;
+    }
+    /**
+     * This function will throw an Error if the App has already been deleted -
+     * use before performing API actions on the App.
+     */
+    checkDestroyed() {
+      if (this.isDeleted) {
+        throw ERROR_FACTORY$3.create("app-deleted", { appName: this._name });
+      }
+    }
+  }
+  function initializeApp(_options, rawConfig = {}) {
+    let options = _options;
+    if (typeof rawConfig !== "object") {
+      const name3 = rawConfig;
+      rawConfig = { name: name3 };
+    }
+    const config = Object.assign({ name: DEFAULT_ENTRY_NAME, automaticDataCollectionEnabled: false }, rawConfig);
+    const name2 = config.name;
+    if (typeof name2 !== "string" || !name2) {
+      throw ERROR_FACTORY$3.create("bad-app-name", {
+        appName: String(name2)
+      });
+    }
+    options || (options = getDefaultAppConfig());
+    if (!options) {
+      throw ERROR_FACTORY$3.create(
+        "no-options"
+        /* AppError.NO_OPTIONS */
+      );
+    }
+    const existingApp = _apps.get(name2);
+    if (existingApp) {
+      if (deepEqual(options, existingApp.options) && deepEqual(config, existingApp.config)) {
+        return existingApp;
+      } else {
+        throw ERROR_FACTORY$3.create("duplicate-app", { appName: name2 });
+      }
+    }
+    const container = new ComponentContainer(name2);
+    for (const component of _components.values()) {
+      container.addComponent(component);
+    }
+    const newApp = new FirebaseAppImpl(options, config, container);
+    _apps.set(name2, newApp);
+    return newApp;
+  }
+  function getApp(name2 = DEFAULT_ENTRY_NAME) {
+    const app = _apps.get(name2);
+    if (!app && name2 === DEFAULT_ENTRY_NAME && getDefaultAppConfig()) {
+      return initializeApp();
+    }
+    if (!app) {
+      throw ERROR_FACTORY$3.create("no-app", { appName: name2 });
+    }
+    return app;
+  }
   function registerVersion(libraryKeyOrName, version2, variant) {
     var _a;
     let library = (_a = PLATFORM_LOG_STRING[libraryKeyOrName]) !== null && _a !== void 0 ? _a : libraryKeyOrName;
@@ -2124,7 +2727,7 @@
    * See the License for the specific language governing permissions and
    * limitations under the License.
    */
-  async function getToken(installations, forceRefresh = false) {
+  async function getToken$2(installations, forceRefresh = false) {
     const installationsImpl = installations;
     await completeInstallationRegistration(installationsImpl);
     const authToken = await refreshAuthToken(installationsImpl, forceRefresh);
@@ -2216,7 +2819,7 @@
     const installations = _getProvider(app, INSTALLATIONS_NAME).getImmediate();
     const installationsInternal = {
       getId: () => getId(installations),
-      getToken: (forceRefresh) => getToken(installations, forceRefresh)
+      getToken: (forceRefresh) => getToken$2(installations, forceRefresh)
     };
     return installationsInternal;
   };
@@ -2815,6 +3418,30 @@
     }
     initializationPromisesMap[appId] = _initializeAnalytics(app, dynamicConfigPromisesList, measurementIdToAppId, installations, gtagCoreFunction, dataLayerName, options);
     const analyticsInstance = new AnalyticsService(app);
+    return analyticsInstance;
+  }
+  function getAnalytics(app = getApp()) {
+    app = getModularInstance(app);
+    const analyticsProvider = _getProvider(app, ANALYTICS_TYPE);
+    if (analyticsProvider.isInitialized()) {
+      return analyticsProvider.getImmediate();
+    }
+    return initializeAnalytics(app);
+  }
+  function initializeAnalytics(app, options = {}) {
+    const analyticsProvider = _getProvider(app, ANALYTICS_TYPE);
+    if (analyticsProvider.isInitialized()) {
+      const existingInstance = analyticsProvider.getImmediate();
+      if (deepEqual(options, analyticsProvider.getOptions())) {
+        return existingInstance;
+      } else {
+        throw ERROR_FACTORY$1.create(
+          "already-initialized"
+          /* AnalyticsError.ALREADY_INITIALIZED */
+        );
+      }
+    }
+    const analyticsInstance = analyticsProvider.initialize({ options });
     return analyticsInstance;
   }
   function logEvent(analyticsInstance, eventName, eventParams, options) {
@@ -3804,16 +4431,150 @@
     registerVersion(name, version);
     registerVersion(name, version, "esm2017");
   }
+  /**
+   * @license
+   * Copyright 2020 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
+  async function isWindowSupported() {
+    try {
+      await validateIndexedDBOpenable();
+    } catch (e) {
+      return false;
+    }
+    return typeof window !== "undefined" && isIndexedDBAvailable() && areCookiesEnabled() && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window && "fetch" in window && ServiceWorkerRegistration.prototype.hasOwnProperty("showNotification") && PushSubscription.prototype.hasOwnProperty("getKey");
+  }
+  /**
+   * @license
+   * Copyright 2020 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
+  function onMessage$1(messaging, nextOrObserver) {
+    if (!navigator) {
+      throw ERROR_FACTORY.create(
+        "only-available-in-window"
+        /* ErrorCode.AVAILABLE_IN_WINDOW */
+      );
+    }
+    messaging.onMessageHandler = nextOrObserver;
+    return () => {
+      messaging.onMessageHandler = null;
+    };
+  }
+  /**
+   * @license
+   * Copyright 2017 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
+  function getMessagingInWindow(app = getApp()) {
+    isWindowSupported().then((isSupported) => {
+      if (!isSupported) {
+        throw ERROR_FACTORY.create(
+          "unsupported-browser"
+          /* ErrorCode.UNSUPPORTED_BROWSER */
+        );
+      }
+    }, (_) => {
+      throw ERROR_FACTORY.create(
+        "indexed-db-unsupported"
+        /* ErrorCode.INDEXED_DB_UNSUPPORTED */
+      );
+    });
+    return _getProvider(getModularInstance(app), "messaging").getImmediate();
+  }
+  async function getToken(messaging, options) {
+    messaging = getModularInstance(messaging);
+    return getToken$1(messaging, options);
+  }
+  function onMessage(messaging, nextOrObserver) {
+    messaging = getModularInstance(messaging);
+    return onMessage$1(messaging, nextOrObserver);
+  }
   registerMessagingInWindow();
-  const loadServiceWorkerAndSetupFirebase = () => {
-    debugger;
+  const setupFirebase = async (registration) => {
+    const firebaseConfig = {
+      apiKey: "AIzaSyCH7S8Nj23Lm9vS8svRZT_Ua8QVZ8bYgbY",
+      authDomain: "test-push-wigzo.firebaseapp.com",
+      projectId: "test-push-wigzo",
+      storageBucket: "test-push-wigzo.firebasestorage.app",
+      messagingSenderId: "833748812904",
+      appId: "1:833748812904:web:55371396d146e8d7c967dd",
+      measurementId: "G-7SQ52GWYRV",
+      vapidKey: "BGDy-d_jQo6a-Ju4scmfMeCzoTVtjEI41p7_ZmmrO3JnGs73r_ghVhYEeiCh2wVv6zCJsnL7fpxV27c5RuzjWGE"
+    };
+    const app = initializeApp(firebaseConfig);
+    getAnalytics(app);
+    const messaging = getMessagingInWindow();
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./firebase-messaging-sw.js").then((registration) => {
-        console.log("Service Worker registered with scope:", registration.scope);
+      navigator.serviceWorker.register("./firebase-messaging-sw.js").then((registration2) => {
+        console.log("Service Worker registered with scope:", registration2.scope);
+        getToken(messaging, {
+          vapidKey: firebaseConfig.vapidKey,
+          serviceWorkerRegistration: registration2
+        }).then((currentToken) => {
+          if (currentToken) {
+            debugger;
+            wigzo == null ? void 0 : wigzo.registerWebPushHelper({ token: currentToken }, "HTTPS");
+          } else {
+            debugger;
+            console.log(
+              "No registration token available. Request permission to generate one."
+            );
+          }
+        }).catch((err) => {
+          console.log("An error occurred while retrieving token. ", err);
+        });
+        onMessage(messaging, (payload) => {
+          const response = payload.notification ? payload.notification : payload.data;
+          const notificationTitle = response.title;
+          const notificationOptions = {
+            body: response.body,
+            icon: response.icon,
+            image: response.image
+          };
+          new Notification(notificationTitle, notificationOptions);
+        });
       }).catch((error) => {
         console.error("Service Worker registration failed:", error);
       });
     }
+  };
+  const loadServiceWorkerAndSetupFirebase = () => {
+    debugger;
+    setupFirebase();
   };
   window.wigzo_en = {
     setupFirebase: loadServiceWorkerAndSetupFirebase

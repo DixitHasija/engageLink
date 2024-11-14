@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
-const setupFirebase = async () => {
+const setupFirebase = async (registration) => {
  // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -35,40 +35,58 @@ const app = initializeApp(firebaseConfig);
   getAnalytics(app);
   // const messaging = getMessaging();
   const messaging = getMessaging();
+  // Specify the custom service worker path
 
 
-  getToken(messaging, {
-    vapidKey: firebaseConfig.vapidKey,
-  })
-    .then((currentToken) => {
-      if (currentToken) {
-      debugger
-      wigzo
-        // Send the token to your server and update the UI if necessary
-        
-      } else {
-        debugger;
-        // Show permission request UI
-        console.log(
-          'No registration token available. Request permission to generate one.',
-        );
-        
-      }
-    })
-    .catch((err) => {
-      console.log('An error occurred while retrieving token. ', err);
-      // ...
-    });
-  onMessage(messaging, (payload) => {
-    const response = payload.notification ? payload.notification : payload.data;
+// useServiceWorker(messaging, './firebase-messaging-sw.js');
+  // messaging.useServiceWorker('./dist/firebase-messaging-sw.js');
+if ('serviceWorker' in navigator) {
+//   window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./firebase-messaging-sw.js')
+      .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+           getToken(messaging, {
+              vapidKey: firebaseConfig.vapidKey,
+              serviceWorkerRegistration: registration
+            })
+              .then((currentToken) => {
+                if (currentToken) {
+                debugger
+                  
+                  wigzo?.registerWebPushHelper({ token: currentToken }, "HTTPS");
+                  // Send the token to your server and update the UI if necessary
+                  
+                } else {
+                  debugger;
+                  // Show permission request UI
+                  console.log(
+                    'No registration token available. Request permission to generate one.',
+                  );
+                  
+                }
+              })
+              .catch((err) => {
+                console.log('An error occurred while retrieving token. ', err);
+                // ...
+              });
+            onMessage(messaging, (payload) => {
+              const response = payload.notification ? payload.notification : payload.data;
 
-    const notificationTitle = response.title;
-    const notificationOptions = {
-      body: response.body,
-      icon: response.icon,
-      image: response.image
-    };
-    var notification = new Notification(notificationTitle, notificationOptions);
-  });
+              const notificationTitle = response.title;
+              const notificationOptions = {
+                body: response.body,
+                icon: response.icon,
+                image: response.image
+              };
+              var notification = new Notification(notificationTitle, notificationOptions);
+            });
+      })
+      .catch((error) => {
+        console.error('Service Worker registration failed:', error);
+      });
+//   });
+}
+
+ 
 };
 export { setupFirebase };
