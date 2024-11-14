@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build &&  npm run build:copy",
     "preview": "vite preview",
-    "build:copy": "cp ./service-worker/firebase-messaging-sw.js ./"
+    "build:copy": "cp ./service-worker/firebase-messaging-sw.js ./dist/"
   },
   "devDependencies": {
     "vite": "^5.4.10"
