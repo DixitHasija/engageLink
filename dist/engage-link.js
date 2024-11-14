@@ -4539,7 +4539,7 @@
     getAnalytics(app);
     const messaging = getMessagingInWindow();
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/firebase-messaging-sw.js", {}).then((registration2) => {
+      navigator.serviceWorker.register("/dist/firebase-messaging-sw.js", {}).then((registration2) => {
         console.log("Service Worker registered with scope:", registration2.scope);
         getToken(messaging, {
           vapidKey: firebaseConfig.vapidKey,
