@@ -1,10 +1,10 @@
 
 // Give the service worker access to Firebase Messaging.
 // Note that you can only use Firebase Messaging here, other Firebase libraries are not available in the service worker.
-importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/11.0.1/firebase-messaging-compat.js');
 
-debugger
+
 const firebaseConfig =  {
   apiKey: "AIzaSyCH7S8Nj23Lm9vS8svRZT_Ua8QVZ8bYgbY",
   authDomain: "test-push-wigzo.firebaseapp.com",
@@ -37,6 +37,15 @@ messaging.onBackgroundMessage((payload) => {
     body: payload?.notification?.body,
     icon:payload?.notification?.image
   };
-
+  console.log("Messaged is logged ");
   self.registration.showNotification(notificationTitle, notificationOptions);
+});
+self.addEventListener('notificationclick', async (event) => {
+  console.log("notification is clicked");
+  
+  event.notification.close(); // Close the notification
+});
+self.addEventListener('notificationclose', async (event) => {
+  const notificationData = event.notification.data; // Retrieve any data attached to the notification
+  console.log('Notification closed:', event.notification);
 });

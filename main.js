@@ -6,7 +6,6 @@ import { setupFirebase } from './services/firebase.service';
 // import { initializeApp } from 'firebase/app';
 // index.js
 const loadServiceWorkerAndSetupFirebase = () => {
-    debugger
 
 
 //     if ('serviceWorker' in navigator) {

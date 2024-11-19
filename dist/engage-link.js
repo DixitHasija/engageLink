@@ -4547,7 +4547,7 @@
         }).then((currentToken) => {
           if (currentToken) {
             debugger;
-            wigzo == null ? void 0 : wigzo.registerWebPushHelper({ token: currentToken }, "HTTPS");
+            wigzo && (wigzo == null ? void 0 : wigzo.registerWebPushHelper({ token: currentToken }, "HTTPS"));
           } else {
             debugger;
             console.log(
@@ -4573,7 +4573,6 @@
     }
   };
   const loadServiceWorkerAndSetupFirebase = () => {
-    debugger;
     setupFirebase();
   };
   window.wigzo_en = {
