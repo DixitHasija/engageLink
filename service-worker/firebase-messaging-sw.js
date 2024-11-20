@@ -67,13 +67,13 @@ messaging.onBackgroundMessage((payload) => {
 });
 self.addEventListener("notificationclick", async (event) => {
   console.log("notification is clicked");
-  url = event.notification.data.url;
+  url ='event.notification.data.url';
   pushOpenTracking = fetch(
     wigzoConf.host +
       "push/v3/track/open?orgToken=" +
       wigzoConf.orgtoken +
       "&campaignId=" +
-      event.notification.data.campaign_id,
+      'event.notification.data.campaign_id',
   ).then(function (response) {
     return true;
   });
