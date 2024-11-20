@@ -67,7 +67,7 @@ messaging.onBackgroundMessage((payload) => {
 });
 self.addEventListener("notificationclick", async (event) => {
   console.log("notification is clicked");
-  pushOpenTracking = fetch(
+  fetch(
     wigzoConf.host +
       "push/v3/track/open?orgToken=" +
       wigzoConf.orgtoken +
