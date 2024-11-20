@@ -35,12 +35,11 @@ messaging.onBackgroundMessage((payload) => {
     icon: (_c = payload == null ? void 0 : payload.notification) == null ? void 0 : _c.image
   };
   console.log("Messaged is logged ");
-  const pushReceivedTracking = fetch(
+  fetch(
     wigzoConf.beam_host + "v3/track/received?orgtoken=" + wigzoConf.orgtoken + "&campaign_id=data.options.data.campaign_id"
   ).then(function(response) {
     return true;
   });
-  pushReceivedTracking();
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 self.addEventListener("notificationclick", async (event) => {
