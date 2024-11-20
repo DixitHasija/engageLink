@@ -63,7 +63,6 @@ messaging.onBackgroundMessage((payload) => {
   ).then(function (response) {
     return true;
   });
-  pushReceivedTracking();
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 self.addEventListener("notificationclick", async (event) => {
