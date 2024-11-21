@@ -4531,15 +4531,13 @@ const firebaseConfig = {
   measurementId: "G-7SQ52GWYRV",
   vapidKey: "BGDy-d_jQo6a-Ju4scmfMeCzoTVtjEI41p7_ZmmrO3JnGs73r_ghVhYEeiCh2wVv6zCJsnL7fpxV27c5RuzjWGE"
 };
-const setupFirebase = async () => {
+const setupFirebase = async (swPath) => {
   const app = initializeApp(firebaseConfig);
   getAnalytics(app);
   const messaging = getMessagingInWindow();
+  swPath = swPath ? swPath : "/dist/firebase-messaging-sw.js";
   const registerServiceWorker = async () => {
-    const sw = await navigator.serviceWorker.register(
-      "/dist/firebase-messaging-sw.js",
-      {}
-    );
+    const sw = await navigator.serviceWorker.register(swPath, {});
     return sw;
   };
   if ("serviceWorker" in navigator) {

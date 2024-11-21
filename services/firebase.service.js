@@ -3,7 +3,7 @@ import { getAnalytics } from "firebase/analytics";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { firebaseConfig } from "../config/firebase-config";
 
-const setupFirebase = async () => {
+const setupFirebase = async (swPath) => {
   // TODO: Add SDKs for Firebase products that you want to use
   // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -36,12 +36,9 @@ const setupFirebase = async () => {
   // const messaging = getMessaging();
   const messaging = getMessaging();
   // Specify the custom service worker path
-
+  swPath = swPath ? swPath : "/dist/firebase-messaging-sw.js";
   const registerServiceWorker = async () => {
-    const sw = await navigator.serviceWorker.register(
-      "/dist/firebase-messaging-sw.js",
-      {},
-    );
+    const sw = await navigator.serviceWorker.register(swPath, {});
     return sw;
   };
 
