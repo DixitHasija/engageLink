@@ -72,7 +72,7 @@ self.addEventListener("notificationclick", async (event) => {
       "push/v3/track/open?orgToken=" +
       wigzoConf.orgtoken +
       "&campaignId=" +
-      'event.notification.data.campaign_id',
+      "event.notification.data.campaign_id",
   ).then(function (response) {
     return true;
   });
