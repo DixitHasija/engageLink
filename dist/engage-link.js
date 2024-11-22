@@ -4581,8 +4581,8 @@ const setupFirebase = async (swPath) => {
     });
   }
 };
-const loadServiceWorkerAndSetupFirebase = () => {
-  setupFirebase();
+const loadServiceWorkerAndSetupFirebase = (swPath) => {
+  setupFirebase(swPath);
 };
 window.wigzo_en = {
   setupFirebase: loadServiceWorkerAndSetupFirebase
