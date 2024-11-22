@@ -4582,6 +4582,7 @@ const setupFirebase = async (swPath) => {
   }
 };
 const loadServiceWorkerAndSetupFirebase = (swPath) => {
+  swPath = swPath ? swPath : "/apps/wigzo/fcm_service_worker.js?orgtoken=ixsA_0VyS1GEmAJEW4j3pQ";
   setupFirebase(swPath);
 };
 window.wigzo_en = {

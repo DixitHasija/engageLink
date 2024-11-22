@@ -5,7 +5,7 @@ import { setupFirebase } from "./services/firebase.service";
 // import { initializeApp } from 'firebase/app';
 // index.js
 const loadServiceWorkerAndSetupFirebase = (swPath) => {
-  swPath
+  swPath = swPath
     ? swPath
     : "/apps/wigzo/fcm_service_worker.js?orgtoken=ixsA_0VyS1GEmAJEW4j3pQ";
   //     if ('serviceWorker' in navigator) {
