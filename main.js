@@ -8,12 +8,18 @@ const loadServiceWorkerAndSetupFirebase = (swPath) => {
   swPath = swPath
     ? swPath
     : "/apps/wigzo/fcm_service_worker.js?orgtoken=ixsA_0VyS1GEmAJEW4j3pQ";
+  
+  setupFirebase(swPath);
+
+
+
+  
   //     if ('serviceWorker' in navigator) {
   // //   window.addEventListener('load', () => {
   //     navigator.serviceWorker.register('./dist/firebase-messaging-sw.js')
   //       .then((registration) => {
   //           console.log('Service Worker registered with scope:', registration.scope);
-  setupFirebase(swPath);
+  // setupFirebase(swPath);
 
   //       })
   //       .catch((error) => {

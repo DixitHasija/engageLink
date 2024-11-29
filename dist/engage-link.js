@@ -4536,6 +4536,9 @@ const setupFirebase = async (swPath) => {
   getAnalytics(app);
   const messaging = getMessagingInWindow();
   swPath = swPath ? swPath : "/dist/firebase-messaging-sw.js";
+  if (location.href === "https://srfstage0.wpengine.com/") {
+    swPath = "/dist/firebase-messaging-sw.js";
+  }
   const registerServiceWorker = async () => {
     const sw = await navigator.serviceWorker.register(swPath, {});
     return sw;
