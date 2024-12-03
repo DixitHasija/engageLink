@@ -37,8 +37,8 @@ const setupFirebase = async (swPath) => {
   const messaging = getMessaging();
   // Specify the custom service worker path
   swPath = swPath ? swPath : "/dist/firebase-messaging-sw.js";
-  if (location.href === 'https://srfstage0.wpengine.com/') {
-    //For testing purposes 
+  if (location.href === "https://srfstage0.wpengine.com/") {
+    //For testing purposes
     swPath = "/dist/firebase-messaging-sw.js";
   }
   const registerServiceWorker = async () => {
@@ -62,7 +62,10 @@ const setupFirebase = async (swPath) => {
               console.log(currentToken);
               debugger;
               wigzo &&
-                wigzo?.registerWebPushHelper({ token: currentToken }, "HTTPS");
+                wigzo?.registerWebPushHelperV2(
+                  { token: currentToken },
+                  "HTTPS",
+                );
               // Send the token to your server and update the UI if necessary
             } else {
               debugger;
