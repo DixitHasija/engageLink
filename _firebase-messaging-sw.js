@@ -7,7 +7,7 @@ importScripts(
   "https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js",
 );
 
-debugger;
+
 const firebaseConfig = {
   apiKey: "AIzaSyCH7S8Nj23Lm9vS8svRZT_Ua8QVZ8bYgbY",
   authDomain: "test-push-wigzo.firebaseapp.com",

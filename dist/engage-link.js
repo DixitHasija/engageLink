@@ -4559,13 +4559,11 @@
         }).then((currentToken) => {
           if (currentToken) {
             console.log(currentToken);
-            debugger;
             wigzo && (wigzo == null ? void 0 : wigzo.registerWebPushHelperV2(
               { token: currentToken },
               "HTTPS"
             ));
           } else {
-            debugger;
             console.log(
               "No registration token available. Request permission to generate one."
             );
@@ -4593,11 +4591,9 @@
   };
   const unregisterOldServiceWorker = () => {
     if ("serviceWorker" in navigator) {
-      debugger;
       navigator.serviceWorker.getRegistrations().then((registrations) => {
         registrations.forEach((registration) => {
           if (registration.activate && registration.activate.scriptURL && registration.activate.scriptURL.includes("fcm_service_worker.js")) {
-            debugger;
             registration.unregister().then((success) => {
               if (success) {
                 console.log("Service worker unregistered successfully.");

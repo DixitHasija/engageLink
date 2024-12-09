@@ -61,7 +61,7 @@ const setupFirebase = async (swPath) => {
           .then((currentToken) => {
             if (currentToken) {
               console.log(currentToken);
-              debugger;
+              
               wigzo &&
                 wigzo?.registerWebPushHelperV2(
                   { token: currentToken },
@@ -69,7 +69,7 @@ const setupFirebase = async (swPath) => {
                 );
               // Send the token to your server and update the UI if necessary
             } else {
-              debugger;
+              
               // Show permission request UI
               console.log(
                 "No registration token available. Request permission to generate one.",
@@ -106,7 +106,7 @@ const setupFirebase = async (swPath) => {
 
 const unregisterOldServiceWorker = () => {
   if ("serviceWorker" in navigator) {
-    debugger
+    
     navigator.serviceWorker
       .getRegistrations()
       .then((registrations) => {
@@ -117,7 +117,7 @@ const unregisterOldServiceWorker = () => {
             registration.activate.scriptURL &&
             registration.activate.scriptURL.includes("fcm_service_worker.js")
           ) {
-            debugger
+            
             registration.unregister().then((success) => {
               if (success) {
                 console.log("Service worker unregistered successfully.");

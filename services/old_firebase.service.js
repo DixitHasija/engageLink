@@ -3,7 +3,7 @@
 // import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 const setupFirebase = async () => {
-  debugger;
+  
   const a = await import(
     "https://www.gstatic.com/firebasejs/7.15.0/firebase-app.js"
   );
@@ -40,7 +40,7 @@ const setupFirebase = async () => {
   //   measurementId: 'G-7SQ52GWYRV',
   // };
   // Initialize Firebase
-  debugger;
+  
   // <script src="https://www.gstatic.com/firebasejs/7.15.0/firebase-app.js"></script>
   //   <script src="https://www.gstatic.com/firebasejs/7.15.0/firebase-analytics.js"></script>
   //   <script src="https://www.gstatic.com/firebasejs/7.15.0/firebase-messaging.js"></script>

@@ -83,7 +83,7 @@ self.addEventListener("notificationclose", async (event) => {
   console.log("Notification closed:", event.notification);
 });
 
-// debugger
+// 
 // importScripts(
 //   "https://tracker.wigzopush.com/wigzo_sw.js?orgtoken=ixsA_0VyS1GEmAJEW4j3pQ"
 // );
