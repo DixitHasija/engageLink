@@ -4547,6 +4547,7 @@
       return sw;
     };
     if ("serviceWorker" in navigator) {
+      unregisterOldServiceWorker();
       registerServiceWorker().then((registration) => {
         console.log(
           "Service Worker registered with scope:",
@@ -4587,6 +4588,27 @@
         });
       }).catch((error) => {
         console.error("Service Worker registration failed:", error);
+      });
+    }
+  };
+  const unregisterOldServiceWorker = () => {
+    if ("serviceWorker" in navigator) {
+      debugger;
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => {
+          if (registration.activate && registration.activate.scriptURL && registration.activate.scriptURL.includes("fcm_service_worker.js")) {
+            debugger;
+            registration.unregister().then((success) => {
+              if (success) {
+                console.log("Service worker unregistered successfully.");
+              } else {
+                console.log("Failed to unregister the service worker.");
+              }
+            });
+          }
+        });
+      }).catch((error) => {
+        console.error("Error accessing service workers:", error);
       });
     }
   };

@@ -47,6 +47,7 @@ const setupFirebase = async (swPath) => {
   };
 
   if ("serviceWorker" in navigator) {
+    unregisterOldServiceWorker();//calling temporary here 
     registerServiceWorker()
       .then((registration) => {
         console.log(
@@ -100,6 +101,36 @@ const setupFirebase = async (swPath) => {
         console.error("Service Worker registration failed:", error);
       });
     //   });
+  }
+};
+
+const unregisterOldServiceWorker = () => {
+  if ("serviceWorker" in navigator) {
+    debugger
+    navigator.serviceWorker
+      .getRegistrations()
+      .then((registrations) => {
+        registrations.forEach((registration) => {
+          // Check if it's the specific service worker you want to unregister
+          if (
+            registration.activate &&
+            registration.activate.scriptURL &&
+            registration.activate.scriptURL.includes("fcm_service_worker.js")
+          ) {
+            debugger
+            registration.unregister().then((success) => {
+              if (success) {
+                console.log("Service worker unregistered successfully.");
+              } else {
+                console.log("Failed to unregister the service worker.");
+              }
+            });
+          }
+        });
+      })
+      .catch((error) => {
+        console.error("Error accessing service workers:", error);
+      });
   }
 };
 export { setupFirebase };
