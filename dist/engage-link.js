@@ -4593,10 +4593,10 @@
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.getRegistrations().then((registrations) => {
         registrations.forEach((registration) => {
-          if (registration.activate && registration.activate.scriptURL && registration.activate.scriptURL.includes("fcm_service_worker.js")) {
+          if (registration.activate && registration.activate.scriptURL && registration.activate.scriptURL.includes("gcm_service_worker.js")) {
             registration.unregister().then((success) => {
               if (success) {
-                console.log("Service worker unregistered successfully.");
+                console.log(" gcm_service_worker unregistered successfully.");
               } else {
                 console.log("Failed to unregister the service worker.");
               }
